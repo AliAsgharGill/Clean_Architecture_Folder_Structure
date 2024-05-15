@@ -88,6 +88,14 @@
       "email": "amad.khan@gmail.com",
       "password": "Amad@786",
       "image": "https://scontent.flhe6-1.fna.fbcdn.net/v/t1.6435-9/186504750_2922906124587599_7880309093528057746_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=5f2048&_nc_eui2=AeHin8yt4CadgqpeVRlePCHzCb0l1pVYtOsJvSXWlVi06502UBSvgscQatslGFuHHhpoEd-9VpDlkkh6KgxzI8d8&_nc_ohc=IOsuw8Ui8bsQ7kNvgHwuKY2&_nc_ht=scontent.flhe6-1.fna&oh=00_AYBvbi2aJhmeze9s-5lYZIcLy8FSWCAskXc865A_H1_IwA&oe=666A72B9"
+    },
+    {
+      "id": "6439",
+      "firstName": "muqeet",
+      "secondName": "Ali",
+      "email": "muqeet@gmail.com",
+      "password": "bycwyJe1@",
+      "image": "Id necessitatibus culpa modi ab architecto architecto quis earum sunt."
     }
   ],
   "allowedUsers": [
@@ -122,6 +130,10 @@
     {
       "id": "72f4",
       "email": "saifsp99@gamil.com"
+    },
+    {
+      "id": "97a8",
+      "email": "muqeet@gmail.com"
     }
   ],
   "candidates": [

@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { MdHowToVote } from "react-icons/md";
 import { candidatesSliceAction } from "../../../core/useCases/Redux/Slices/CandidateSlice";
-import { Campaign, Candidate } from "../../Interfaces/Interfaces";
+import { Campaign, Candidate } from "../../Interfaces";
 
 const CampaignsCard = () => {
   const { Meta } = Card;

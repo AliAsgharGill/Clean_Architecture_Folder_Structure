@@ -12,7 +12,7 @@ import {
   EditOutlined,
   IdcardOutlined,
 } from "@ant-design/icons";
-import { Campaign, Candidate, CandidatesState } from "../../../Interfaces/Interfaces"; 
+import { Campaign, Candidate, CandidatesState } from "../../../Interfaces"; 
 import { RootState } from "@reduxjs/toolkit";
 
 const CampaignManagementPage = () => {

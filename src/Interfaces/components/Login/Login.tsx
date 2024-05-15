@@ -1,65 +1,20 @@
-import React from "react";
-import { Form, Input, Button, message } from "antd";
+import { Form } from "antd";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { FaRegUserCircle } from "react-icons/fa";
+import { loginUseCase } from "../../../core/useCases/LoginUseCase";
+import { FormValues } from "../../../Interfaces/Interfaces";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { setUser } from "../../../core/useCases/Redux/Slices/userSlice";
-import { setAdmin } from "../../../core/useCases/Redux/Slices/adminSlice";
-import { FormValues } from "../../Interfaces/Interfaces";
+import CustomFormItem from "../CustomFormItem";
+import CustomButton from "../CustomButton";
 
 const Login = ({ type }: { type: string }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const userString = localStorage.getItem("user");
-  const user = userString ? JSON.parse(userString) : null;
-
-  const adminString = localStorage.getItem("admin");
-  const admin = adminString ? JSON.parse(adminString) : null;
-
-  React.useEffect(() => {
-    if (admin || user) {
-      message.warning("Please Logout First To Login Again! ");
-      navigate("/");
-    }
-  }, [admin, navigate, user]);
-
   const onFinish = async (values: FormValues) => {
-    // console.log("Values:", values);
-    try {
-      const emailResponse = await axios.get(
-        `http://localhost:3000/${type}s?email=${values.email}`
-      );
-
-      if (!emailResponse.data.length) {
-        message.warning(`Invalid Email ${values.email}. Please Signup First`);
-        return;
-      }
-
-      const userData = emailResponse.data[0];
-      if (userData.password !== values.password) {
-        message.error("Invalid password. Please try again.");
-        return;
-      }
-
-      if (type === "admin") {
-        message.success("Welcome Back Admin");
-        localStorage.setItem("admin", JSON.stringify(userData));
-        dispatch(setAdmin(userData));
-        navigate("/dashboard");
-      } else if (type === "user") {
-        message.success("Welcome Back");
-        localStorage.setItem("user", JSON.stringify(userData));
-        dispatch(setUser(userData));
-        navigate("/");
-      }
-    } catch (error) {
-      console.warn("Error", error);
-    }
+    await loginUseCase(values, type, dispatch, navigate);
   };
-
   return (
     <>
       <div className="min-h-screen flex justify-center items-center">
@@ -69,9 +24,8 @@ const Login = ({ type }: { type: string }) => {
           layout="vertical"
           className="bg-primaryColor-900 p-10 rounded mt-20 sm:mt-20 md:mt-0 sm:w-1/3"
         >
-          <Form.Item
+          <CustomFormItem
             label="Email"
-            className="text-white"
             name="email"
             rules={[
               {
@@ -91,10 +45,11 @@ const Login = ({ type }: { type: string }) => {
                 ),
               },
             ]}
-          >
-            <Input placeholder="Email" prefix={<FaRegUserCircle />} />
-          </Form.Item>
-          <Form.Item
+            placeholder="Email"
+            prefix={<FaRegUserCircle />}
+          />
+
+          <CustomFormItem
             label="Password"
             name="password"
             rules={[
@@ -107,23 +62,15 @@ const Login = ({ type }: { type: string }) => {
                 ),
               },
             ]}
-          >
-            <Input.Password
-              placeholder="Password"
-              prefix={<RiLockPasswordLine />}
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              className="bg-black hover:bg-[#222831] w-full ant-btn"
-            >
-              Log In
-            </Button>
-          </Form.Item>
-
+            placeholder="Password"
+            prefix={<RiLockPasswordLine />}
+            type="password"
+          />
+          <CustomButton
+            text="Submit"
+            htmlType="submit"
+            classes="my-custom-class"
+          />
           <Form.Item>
             <p className="text-alphaColor-900 font-bold text-center">
               Don't have an account-

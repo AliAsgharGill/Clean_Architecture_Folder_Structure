@@ -13,12 +13,7 @@ export const Nav = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  // const currentUser = JSON.parse(localStorage.getItem("user"));
-
-  // const [isAdmin, setIsAdmin] = useState(false);
-
-  // const user = JSON.parse(localStorage.getItem('user')!) as string;
-
+  
   const userString = localStorage.getItem("user");
   const user = userString ? JSON.parse(userString) : null;
 
