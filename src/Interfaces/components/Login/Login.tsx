@@ -5,8 +5,8 @@ import { loginUseCase } from "../../../core/useCases/LoginUseCase";
 import { FormValues } from "../../../Interfaces/Interfaces";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import CustomFormItem from "../CustomFormItem";
-import CustomButton from "../CustomButton";
+import CustomFormItem from "../common/CustomFormItem";
+import CustomButton from "../common/CustomButton";
 
 const Login = ({ type }: { type: string }) => {
   const dispatch = useDispatch();

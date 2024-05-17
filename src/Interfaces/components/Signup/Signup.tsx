@@ -3,12 +3,12 @@ import { MdEmail } from "react-icons/md";
 import { RiLockPasswordFill, RiUserFill } from "react-icons/ri";
 import { FaExternalLinkSquareAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import CustomButton from "../../components/CustomButton";
+import CustomButton from "../common/CustomButton";
 import { SignupUseCase } from "../../../core/useCases/SignupUseCase";
-import CustomFormItem from "../CustomFormItem";
+import CustomFormItem from "../common/CustomFormItem";
 
-const SignupForm = ({ type }: { type: string }) => {
-  const { form, navigate, onFinish } = SignupUseCase(type);
+const SignupForm = ({ type }: { type: string }): JSX.Element => {
+  const { form, navigate,  onFinish } = SignupUseCase(type);
 
   return (
     <div className="min-h-screen p-5 flex justify-center items-center">
