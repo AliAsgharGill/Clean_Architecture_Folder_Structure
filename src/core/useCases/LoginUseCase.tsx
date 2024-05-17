@@ -1,18 +1,14 @@
-// src/useCases/LoginUseCase.ts
-
 import axios from "axios";
 import { message } from "antd";
 import { FormValues } from "../../Interfaces/Interfaces";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { setUser } from "../../core/useCases/Redux/Slices/userSlice";
 import { setAdmin } from "../../core/useCases/Redux/Slices/adminSlice";
 
 export const loginUseCase = async (
   values: FormValues,
   type: string,
-  dispatch: any, // Adjust the type as needed
-  navigate: any // Adjust the type as needed
+  dispatch: any, 
+  navigate: any 
 ) => {
   try {
     const emailResponse = await axios.get(

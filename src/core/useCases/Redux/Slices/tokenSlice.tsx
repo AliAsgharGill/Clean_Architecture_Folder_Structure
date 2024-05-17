@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { TokensState } from "../../Interfaces/TypesInterfaces";
+import { TokensState } from "../../../../Interfaces/Interfaces";
 
 export const deleteAllTokens = createAsyncThunk(
   "clearTokens",

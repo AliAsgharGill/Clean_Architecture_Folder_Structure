@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { Candidate, CandidatesState } from "../../Interfaces/TypesInterfaces";
+import { Candidate, CandidatesState } from "../../../../Interfaces/Interfaces";
 import axios from "axios";
 
 const initialState: CandidatesState = {
