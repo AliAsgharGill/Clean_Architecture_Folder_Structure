@@ -1,8 +1,8 @@
 import axios from "axios";
 import { message } from "antd";
-import { FormValues } from "../../Interfaces/Interfaces";
-import { setUser } from "../../core/useCases/Redux/Slices/userSlice";
-import { setAdmin } from "../../core/useCases/Redux/Slices/adminSlice";
+import { FormValues } from "../../../Interfaces/Interfaces";
+import { setUser } from "../Redux/Slices/userSlice";
+import { setAdmin } from "../Redux/Slices/adminSlice";
 
 export const loginUseCase = async (
   values: FormValues,

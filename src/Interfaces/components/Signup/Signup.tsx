@@ -4,7 +4,7 @@ import { RiLockPasswordFill, RiUserFill } from "react-icons/ri";
 import { FaExternalLinkSquareAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import CustomButton from "../common/CustomButton";
-import { SignupUseCase } from "../../../core/useCases/SignupUseCase";
+import { SignupUseCase } from "../../../core/useCases/auth/SignupUseCase";
 import CustomFormItem from "../common/CustomFormItem";
 
 const SignupForm = ({ type }: { type: string }): JSX.Element => {

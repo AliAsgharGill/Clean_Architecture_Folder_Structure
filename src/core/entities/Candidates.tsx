@@ -1,8 +1,7 @@
 export interface Candidate {
-    id: number;
-    candidateName: string;
-    candidateSymbol: string;
-    campaignID: number;
-    votes: number;
-  }
-  
+  id: number;
+  candidateName: string;
+  candidateSymbol: string;
+  votes: number;
+  campaignID?: number;
+}

@@ -1,5 +1,3 @@
-// src/components/CustomButton.tsx
-
 import React from "react";
 import { Button } from "antd";
 
@@ -7,16 +5,23 @@ interface CustomButtonProps {
   onClick?: () => void;
   text: string;
   htmlType: "button" | "submit" | "reset";
-  classes?: string; 
+  classes?: string;
+  type?: string;
 }
 
-const CustomButton: React.FC<CustomButtonProps> = ({ onClick, text, htmlType = "button", classes = "" }) => {
+const CustomButton: React.FC<CustomButtonProps> = ({
+  onClick,
+  text,
+  htmlType = "button",
+  classes = "",
+  type,
+}) => {
   return (
     <Button
-      type="primary"
+      type={type}
       onClick={onClick}
       htmlType={htmlType}
-      className={`bg-black hover:bg-[#222831] w-full ant-btn ${classes}`}
+      className={`bg-black hover:bg-[#222831] ant-btn ${classes}`}
     >
       {text}
     </Button>

@@ -1,7 +1,7 @@
 import { Form } from "antd";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { FaRegUserCircle } from "react-icons/fa";
-import { loginUseCase } from "../../../core/useCases/LoginUseCase";
+import { loginUseCase } from "../../../core/useCases/auth/LoginUseCase";
 import { FormValues } from "../../../Interfaces/Interfaces";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";

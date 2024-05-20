@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Form, message } from "antd";
 import axios from "axios";
-import { setUser } from "../../core/useCases/Redux/Slices/userSlice";
-import { setAdmin } from "../../core/useCases/Redux/Slices/adminSlice";
+import { setUser } from "../Redux/Slices/userSlice";
+import { setAdmin } from "../Redux/Slices/adminSlice";
 
 interface FormValues {
   firstName: string;

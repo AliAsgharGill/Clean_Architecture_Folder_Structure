@@ -1,566 +1,332 @@
-import { useSelector, useDispatch } from "react-redux";
-import { Form, Input, Button, message, Card, Modal } from "antd";
-import { FaRegUserCircle } from "react-icons/fa";
-import { useEffect, useRef, useState } from "react";
-import { FaLink } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { campaignSliceActions } from "../../../../core/useCases/Redux/Slices/campaignSlice";
-import { candidatesSliceAction } from "../../../../core/useCases/Redux/Slices/CandidateSlice";
+import React, { useEffect, useState, useRef } from "react";
+import { Modal, Button, Form, Input, Card } from "antd";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Campaign } from "../../../../core/entities/Campaign";
+import { Candidate } from "../../../../core/entities/Candidates";
 import {
-  DeleteOutlined,
-  EditOutlined,
-  IdcardOutlined,
-} from "@ant-design/icons";
-import { Campaign, Candidate, CandidatesState } from "../../../Interfaces"; 
-import { RootState } from "@reduxjs/toolkit";
+  fetchCampaigns,
+  addCampaign,
+  updateCampaign,
+  deleteCampaign,
+  fetchCandidates,
+  addCandidate,
+  updateCandidate,
+  deleteCandidate,
+} from "../../../../core/useCases/campaigns/campaignUseCases";
+import CustomButton from "../../../components/common/CustomButton";
 
-const CampaignManagementPage = () => {
-  const { Meta } = Card;
-  const formRef = useRef(null);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+const { Meta } = Card;
 
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  const adminString = localStorage.getItem("admin");
-  const admin = adminString ? JSON.parse(adminString) : null;
-
-  // const admin = JSON.parse(localStorage.getItem("admin"));
+const CampaignManagementPage: React.FC = () => {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
+    null
+  );
+  const [participants, setParticipants] = useState<Candidate[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewModal, setViewModal] = useState(false);
+  const [campaignView, setCampaignView] = useState(false);
+  const [edit, setEdit] = useState<Candidate | null>(null);
+  const [editCampaign, setEditCampaign] = useState<Campaign | null>(null);
+  const formRef = useRef<any>();
 
   useEffect(() => {
-    dispatch(candidatesSliceAction.fetchCandidates());
-    dispatch(campaignSliceActions.fetchCampaigns());
-  }, []);
-
-  useEffect(() => {
-    const fetchAdmins = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:3000/admins?email=${admin.email}`
-        );
-        setIsAdmin(!!response.data.length);
-      } catch (error) {
-        console.log("Error Fetching Admins", error);
-      }
+    const loadCampaigns = async () => {
+      const data = await fetchCampaigns();
+      setCampaigns(data);
     };
 
-    if (admin) {
-      fetchAdmins();
-    } else {
-      navigate("/login/admin");
-      message.info("Please Login First As Admin");
-    }
-  }, [admin, navigate]);
+    loadCampaigns();
+  }, []);
 
-  const [view, setView] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [campaignID, setCampaignID] = useState(null);
-  const campaigns = useSelector((state: RootState) => state.campaigns.list);
-  // console.log("Campagins", campaigns);
-  const candidates = useSelector((state: RootState) => state.candidates.list);
-  // console.log("Candidates", candidates);
-
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [participants, setParticipants] = useState(null);
-
-  const manageCandidates = (campaign: Campaign) => {
-    dispatch(campaignSliceActions.fetchCampaigns());
-    const campaignExist = campaigns.find(
-      (camp: Campaign) => camp.id === campaign.id
-    );
-    console.log("Campaign Exist:", campaignExist);
-
-    const contestants = candidates.filter(
-      (can) => can.campaignID === campaignExist.id
-    );
-    setParticipants(contestants);
-    // if (campaignExist) {
-    //   const data = campaignExist.candidates;
-    //   setSelectedCampaign(data);
-    //   setView(true);
-    // }
-    console.log("contestants", contestants);
-
-    if (campaignExist) {
-      setSelectedCampaign(campaignExist.candidates);
-      setCampaignID(campaignExist.id);
-      setView(true);
-    }
-  };
-
-  const handleDeleteCampaign = (id: number) => {
-    dispatch(campaignSliceActions.fetchCampaigns());
-    Modal.confirm({
-      title: "Confirm Delete",
-      content: "Are you sure you want delete campaign?",
-      okButtonProps: { style: { backgroundColor: "#F09A60" } },
-      onOk() {
-        dispatch(campaignSliceActions.deleteCampaign(id));
-        dispatch(campaignSliceActions.fetchCampaigns());
-        // Delete candidates with the same campaignID
-        const candidatesToDelete = candidates.filter(
-          (candidate: Candidate) => candidate.campaignID === id
-        );
-        candidatesToDelete.forEach((candidate: Candidate) => {
-          dispatch(candidatesSliceAction.deleteCandidate(candidate.id));
-        });
-      },
-      onCancel() {},
-    });
-  };
-
-  useEffect(() => {
-    dispatch(campaignSliceActions.fetchCampaigns());
-    dispatch(candidatesSliceAction.fetchCandidates());
-  }, [dispatch]);
-
-  const onFinish = (values) => {
-    console.log("Success:", values);
-    setView(false);
-  };
-
-  const onFinishFailed = (errorInfo) => {
-    console.log("Failed:", errorInfo);
-  };
-
-  const onFinishFrom = async (values: Candidate) => {
-    console.log("Success:", values);
-    formRef.current.resetFields();
-    dispatch(
-      candidatesSliceAction.addCandidate({
-        ...values,
-        campaignID: campaignID,
-        votes: 0,
-      })
-    );
-    dispatch(candidatesSliceAction.fetchCandidates());
+  const handleAddCampaign = async (values: Campaign) => {
+    await addCampaign(values);
     setIsModalOpen(false);
-    message.success("Candidate Added Successfully!");
+    const updatedCampaigns = await fetchCampaigns();
+    setCampaigns(updatedCampaigns);
   };
 
-  const onFinishEdit = async (values: Candidate) => {
-    console.log("Values", values);
-    dispatch(candidatesSliceAction.updateCandidate(values));
-  };
-
-  const onFinishCampaignEdit = async (values: Campaign) => {
-    console.log("Values", values);
-    dispatch(campaignSliceActions.updateCampaign(values));
+  const handleUpdateCampaign = async (values: Campaign) => {
+    await updateCampaign(values);
     setCampaignView(false);
+    const updatedCampaigns = await fetchCampaigns();
+    setCampaigns(updatedCampaigns);
   };
 
-  const onFinishFailedFrom = (errorInfo) => {
-    console.log("Failed:", errorInfo);
-    formRef.current.resetFields();
+  const handleDeleteCampaign = async (campaignID: string) => {
+    await deleteCampaign(campaignID);
+    const updatedCampaigns = await fetchCampaigns();
+    setCampaigns(updatedCampaigns);
   };
 
-  const handleAddCandidate = (campaign: Candidate) => {
-    console.log("Campaign Is:", campaign);
-    setIsModalOpen(true);
+  const handleFetchCandidates = async (campaignID: string) => {
+    const data = await fetchCandidates(campaignID);
+    setParticipants(data);
   };
 
-  const [edit, setEdit] = useState<string | null>(null);
-  const [viewModal, setViewModal] = useState(false);
-  interface EditCampaign {
-    name: string;
-    description: string;
-  }
-  // const [editCampaign, setEditCampaign] = useState<EditCampaign | null>(null);
-  const [editCampaign, setEditCampaign] = useState({
-    name: "",
-    description: "",
-  });
-
-  const handleFormChange = (changedValues) => {
-    setEditCampaign({
-      ...editCampaign,
-      ...changedValues,
+  const handleAddCandidate = async (values: Candidate) => {
+    await addCandidate({
+      ...values,
+      campaignID: selectedCampaign!.id,
+      votes: 0,
     });
-  };
-  const [campaignView, setCampaignView] = useState(false);
-
-  const handleEdit = (id:number) => {
-    const findCandidate = candidates.find(
-      (candidate: CandidatesState) => candidate.id === id
-    );
-    if (findCandidate) {
-      setEdit(findCandidate);
-      setViewModal(true);
-    }
+    setIsModalOpen(false);
+    await handleFetchCandidates(selectedCampaign!.id);
   };
 
-  // const [edit, setEdit] = useState(false)
-
-  const handleEditCampaign = (campaign) => {
-    const findCampaign = campaigns.find((camp) => camp.id === campaign.id);
-    setCampaignView(true);
-    if (findCampaign) {
-      setEditCampaign(findCampaign);
-      console.log("Campaign ya ha:", findCampaign);
-    }
-  };
-
-  const handleUpdateCandidate = () => {
-    console.log("Befor Send");
-    dispatch(candidatesSliceAction.updateCandidate(edit));
+  const handleUpdateCandidate = async (values: Candidate) => {
+    await updateCandidate(values);
     setViewModal(false);
-    setEdit(null);
+    await handleFetchCandidates(selectedCampaign!.id);
   };
 
-  const handleDelete = (id: number | string) => {
-    Modal.confirm({
-      title: "Confirm Delete",
-      content: "Are you sure you want delete candidate?",
-      okButtonProps: { style: { backgroundColor: "#2D9596" } },
-      onOk() {
-        dispatch(candidatesSliceAction.deleteCandidate(id));
-        dispatch(candidatesSliceAction.fetchCandidates());
-      },
-      onCancel() {},
-    });
+  const handleDeleteCandidate = async (candidateID: string) => {
+    await deleteCandidate(candidateID);
+    await handleFetchCandidates(selectedCampaign!.id);
   };
+
   return (
     <>
-      {isAdmin && (
-        <div className="m-10">
-          <div className=" mt-20 sm:mt-10">
-            <h2 className="font-bold text-3xl mx-auto justify-center text-primaryColor-900 text-center  my-5">
-              Campaign Management
-            </h2>
-            {/* Fetching Existing campaigns */}
-            <div className=" p-5 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 place-items-center">
-              {campaigns.map((campaign) => (
-                <Card
-                  key={campaign.id}
-                  style={{ width: 300 }}
-                  className="outline outline-gray-100 outline-1 "
-                  hoverable
-                  cover={
-                    <img
-                      style={{
-                        height: 200,
-                      }}
-                      alt="example"
-                      src={campaign.image}
-                    />
-                  }
-                  actions={[
-                    <>
-                      <div className="flex justify-around space-x-3">
-                        <IdcardOutlined
-                          onClick={() => {
-                            manageCandidates(campaign);
-                          }}
-                          key="view"
-                          style={{ color: "skyblue" }}
-                        />
-                        ,
-                        {/* <EditOutlined
-                          key="edit"
-                          style={{ color: "blue" }}
-                          onClick={() => handleEditCampaign(campaign)}
-                        />
-                        , */}
-                        <DeleteOutlined
-                          onClick={() => handleDeleteCampaign(campaign.id)}
-                          key="delete"
-                          style={{ color: "#c13584" }}
-                        />
-                      </div>
-                    </>,
-                  ]}
-                >
-                  <Meta
-                    style={{ textAlign: "justify", height: "120px" }}
-                    title={campaign.name}
-                    description={campaign.description}
-                  />
-                </Card>
-              ))}
-            </div>
-          </div>
-          {/* Modal for dispaying candidates */}
-          <Modal
-            Modal
-            open={view}
-            title="Canditates"
-            onCancel={() => setView(false)}
-            onOk={() => setView(false)}
-            onFinish={onFinish}
-            width={1000}
-            onFinishFailed={onFinishFailed}
-            className="w-screen"
-          >
-            <div className="p-4 space-x-5">
-              <Button
-                onClick={() => handleAddCandidate(selectedCampaign)}
-                type="primary"
-                key="button"
-                className="bg-primaryColor-900"
-                icon={<FaRegUserCircle />}
-              >
-                Add Candidate
-              </Button>
-            </div>
-            <div className="grid  sm:grid-cols-1 md:grid-cols-3 gap-4">
-              {participants &&
-                // console.log("Camp Cand", selectedCampaign),
-                participants.map((participant) => (
-                  <Card
-                    key={participant.id}
-                    className=""
-                    actions={[
-                      <EditOutlined
-                        key="edit"
-                        style={{ color: "blue" }}
-                        onClick={() => handleEdit(participant.id)}
-                      />,
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">Campaign Management</h1>
+        <CustomButton
+          type="primary"
+          onClick={() => setIsModalOpen(true)}
+          text="Add Campaign"
+        />
 
-                      <DeleteOutlined
-                        key="delete"
-                        style={{ color: "#c13584" }}
-                        onClick={() => handleDelete(participant.id)}
-                      />,
-                    ]}
-                    hoverable={true}
-                  >
-                    <div
-                      key={participant.id}
-                      className="bg-gray-300 flex justify-center items-center flex-col p-8 rounded h-[350px]"
-                    >
-                      <img
-                        src={participant.candidateSymbol}
-                        alt="Symbol"
-                        className="rounded-full flex justify-center items-center"
-                      />
-                      ,
-                      <div className="font-bold  font-serif  ">
-                        {participant.candidateName}
-                      </div>
-                      <div className="font-bold  font-serif  ">
-                        ID:{participant.id}
-                      </div>
-                      <div className="font-serif  ">
-                        Votes:{participant.votes}
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-            </div>
-          </Modal>
-          {/* Modal For Adding Candidate */}
-          <Modal
-            open={isModalOpen}
-            title="Add Candidate/Product"
-            onCancel={() => setIsModalOpen(false)}
-            onOk={() => setIsModalOpen(false)}
-            onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
-            footer={null}
-          >
-            <Form
-              ref={formRef}
-              name="Add Candidate"
-              onFinish={onFinishFrom}
-              onFinishFailed={onFinishFailedFrom}
-              layout="vertical"
-              className={`bg-gray-300 p-10 rounded`}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          {campaigns.map((campaign) => (
+            <Card
+              key={campaign.id}
+              style={{ width: 300 }}
+              className="outline outline-gray-100 outline-1"
+              hoverable
+              cover={
+                <img
+                  style={{ height: 200 }}
+                  alt="example"
+                  src={campaign.image}
+                />
+              }
+              actions={[
+                <EditOutlined
+                  onClick={() => {
+                    setEditCampaign(campaign);
+                    setCampaignView(true);
+                  }}
+                  key="edit"
+                  style={{ color: "skyblue" }}
+                />,
+                <DeleteOutlined
+                  onClick={() => handleDeleteCampaign(campaign.id)}
+                  key="delete"
+                  style={{ color: "#c13584" }}
+                />,
+              ]}
             >
-              <Form.Item
-                label="Name"
-                name="candidateName"
-                rules={[
-                  {
-                    required: true,
-                    message: (
-                      <span className="font-bold text-red-500 ">
-                        Please enter your first name!
-                      </span>
-                    ),
-                  },
-                  {
-                    min: 3,
-                    message: (
-                      <span className="font-bold text-red-500">
-                        Name must be at least 3 characters long!
-                      </span>
-                    ),
-                  },
-                  {
-                    max: 25,
-                    message: (
-                      <span className="font-bold text-red-500">
-                        Keep Less than 25 characters!
-                      </span>
-                    ),
-                  },
-                ]}
-              >
-                <Input placeholder="Name" prefix={<FaRegUserCircle />} />
-              </Form.Item>
-              <Form.Item
-                label="Symbol Image Link"
-                name="candidateSymbol"
-                rules={[
-                  { required: true, message: "Please Input Link of Symbol!" },
-                ]}
-              >
-                <Input placeholder="Symbol Link" prefix={<FaLink />} />
-              </Form.Item>
-
-              <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  className="bg-gray-900 w-full"
-                >
-                  Add
-                </Button>
-              </Form.Item>
-            </Form>
-          </Modal>
-
-          {/* Campaign Edit Modal Code */}
-          <Modal
-            open={campaignView}
-            title="Edit Campaign"
-            onCancel={() => setCampaignView(false)}
-            onOk={() => onFinishCampaignEdit(editCampaign)}
-            okButtonProps={{ style: { backgroundColor: "blue" } }}
-          >
-            {editCampaign ? (
-              <Form
-                ref={formRef}
-                name="Edit Campaign"
-                // onFinish={() => onFinishCampaignEdit(editCampaign)}
-                onFinish={() =>
-                  onFinishCampaignEdit({
-                    ...editCampaign,
-                    name: editCampaign.name,
-                    description: editCampaign.description,
-                  })
-                }
-                initialValues={editCampaign}
-                onValuesChange={handleFormChange}
-                onFinishFailed={onFinishFailed}
-                layout="vertical"
-                className={`bg-gray-300 p-10 rounded`}
-                initialValues={{
-                  name: `${editCampaign?.name}`,
-                  description: `${editCampaign?.description}`,
+              <Meta
+                style={{ textAlign: "justify", height: "120px" }}
+                title={campaign.name}
+                description={campaign.description}
+              />
+              <Button
+                type="link"
+                onClick={() => {
+                  setSelectedCampaign(campaign);
+                  handleFetchCandidates(campaign.id);
                 }}
               >
-                <Form.Item
-                  label="Campaign Name"
-                  name="name"
-                  rules={[
-                    { required: true, message: "Please enter campaign Name!" },
-                  ]}
-                >
-                  <Input
-                    placeholder="Name"
-                    onChange={(e) => setEditCampaign(e.target.value)}
-                    prefix={<FaRegUserCircle />}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Description"
-                  name="description"
-                  rules={[
-                    { required: true, message: "Please Input Link of Symbol!" },
-                  ]}
-                >
-                  <Input
-                    placeholder="Symbol Link"
-                    prefix={<FaLink />}
-                    onChange={(e) => setEditCampaign(e.target.value)}
-                  />
-                </Form.Item>
-
-                <Form.Item>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    className="bg-gray-900 w-full"
-                  >
-                    Add
-                  </Button>
-                </Form.Item>
-              </Form>
-            ) : (
-              "No Data"
-            )}
-          </Modal>
-
-          {/* Candidate Edit Modal Code */}
-          <Modal
-            open={viewModal}
-            title="Edit Candidate"
-            onCancel={() => setViewModal(false)}
-            onOk={() => onFinishEdit(edit)}
-            okButtonProps={{ style: { backgroundColor: "blue" } }}
-          >
-            {edit ? (
-              <Form
-                ref={formRef}
-                name="Edit Candidate"
-                onFinish={() => onFinishEdit(edit)}
-                onFinishFailed={onFinishFailed}
-                layout="vertical"
-                className={`bg-gray-300 p-10 rounded`}
-                // initialValues={
-                //         candidateName: 'edit.name',
-                // candidateSymbol: 'edit.candidateSymbol'
-                // }
-              >
-                <Form.Item
-                  label="Name"
-                  name="candidateName"
-                  rules={[
-                    { required: true, message: "Please enter your Name!" },
-                  ]}
-                >
-                  <Input
-                    placeholder="Name"
-                    onChange={(e) => setEdit(e.target.value)}
-                    prefix={<FaRegUserCircle />}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Symbol Image Link"
-                  name="candidateSymbol"
-                  rules={[
-                    { required: true, message: "Please Input Link of Symbol!" },
-                  ]}
-                >
-                  <Input
-                    placeholder="Symbol Link"
-                    prefix={<FaLink />}
-                    onChange={(e) => setEdit(e.target.value)}
-                  />
-                </Form.Item>
-
-                <Form.Item>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    className="bg-gray-900 w-full"
-                  >
-                    Add
-                  </Button>
-                </Form.Item>
-              </Form>
-            ) : (
-              "No Data"
-            )}
-          </Modal>
+                View Participants
+              </Button>
+            </Card>
+          ))}
         </div>
-      )}
+      </div>
+
+      <Modal
+        open={selectedCampaign !== null}
+        title="Participants"
+        footer={null}
+        onCancel={() => setSelectedCampaign(null)}
+      >
+        <Button type="primary" onClick={() => setIsModalOpen(true)}>
+          Add Participant
+        </Button>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 place-items-center">
+          {participants.map((candidate) => (
+            <Card
+              key={candidate.id}
+              style={{ width: 300 }}
+              className="outline outline-gray-100 outline-1"
+              hoverable
+              cover={
+                <img
+                  style={{ height: 200 }}
+                  alt="example"
+                  src={candidate.candidateSymbol}
+                />
+              }
+              actions={[
+                <EditOutlined
+                  onClick={() => {
+                    setEdit(candidate);
+                    setViewModal(true);
+                  }}
+                  key="edit"
+                  style={{ color: "skyblue" }}
+                />,
+                <DeleteOutlined
+                  onClick={() => handleDeleteCandidate(candidate.id)}
+                  key="delete"
+                  style={{ color: "#c13584" }}
+                />,
+              ]}
+            >
+              <Meta
+                style={{ textAlign: "justify", height: "120px" }}
+                title={candidate.candidateName}
+                description={candidate.candidateSymbol}
+              />
+            </Card>
+          ))}
+        </div>
+      </Modal>
+
+      <Modal
+        open={isModalOpen}
+        title="Add Campaign"
+        footer={null}
+        onCancel={() => setIsModalOpen(false)}
+      >
+        <Form
+          ref={formRef}
+          name="candidate"
+          onFinish={handleAddCandidate}
+          autoComplete="off"
+        >
+          <Form.Item
+            label="Candidate Name"
+            name="candidateName"
+            rules={[
+              { required: true, message: "Please input candidate name!" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Candidate Symbol"
+            name="candidateSymbol"
+            rules={[
+              { required: true, message: "Please input candidate symbol!" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="bg-primaryColor-900"
+            >
+              Add Candidate
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        open={viewModal}
+        title="Edit Candidate"
+        footer={null}
+        onCancel={() => setViewModal(false)}
+      >
+        <Form
+          ref={formRef}
+          name="candidate"
+          initialValues={edit || {}}
+          onFinish={handleUpdateCandidate}
+          autoComplete="off"
+        >
+          <Form.Item
+            label="Candidate Name"
+            name="candidateName"
+            rules={[
+              { required: true, message: "Please input candidate name!" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Candidate Symbol"
+            name="candidateSymbol"
+            rules={[
+              { required: true, message: "Please input candidate symbol!" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="bg-primaryColor-900"
+            >
+              Update Candidate
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        open={campaignView}
+        title="Edit Campaign"
+        footer={null}
+        onCancel={() => setCampaignView(false)}
+      >
+        <Form
+          ref={formRef}
+          name="campaign"
+          initialValues={editCampaign || {}}
+          onFinish={handleUpdateCampaign}
+          autoComplete="off"
+        >
+          <Form.Item
+            label="Campaign Name"
+            name="name"
+            rules={[{ required: true, message: "Please input campaign name!" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Description"
+            name="description"
+            rules={[
+              { required: true, message: "Please input campaign description!" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Image URL"
+            name="image"
+            rules={[{ required: true, message: "Please input image URL!" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="bg-primaryColor-900"
+            >
+              Update Campaign
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 };
-
-// new
 
 export default CampaignManagementPage;

@@ -1,5 +1,5 @@
 import React from "react";
-import useGetUserData from "../../../core/useCases/getUserData";
+import useGetUserData from "../../../core/useCases/candidates/getUserData";
 import UserCard from "../common/UserCard";
 
 

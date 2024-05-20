@@ -1,4 +1,4 @@
-import useUserService from "../../Interfaces/services/UserService";
+import useUserService from "../../../Interfaces/services/UserService";
 
 const useGetUserData = () => {
   const { getUserData } = useUserService();
